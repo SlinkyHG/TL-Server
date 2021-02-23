@@ -1,6 +1,6 @@
 import net from 'net'
 import dgram from 'dgram'
-import Client from './client'
+import Client from './client.js'
 
 export default class Controller {
 
@@ -44,8 +44,27 @@ export default class Controller {
 
     addClient(ip){
         console.log(`[BROADCAST] Searching client ${ip} in cache`);
-        let connecting = false
-        this.clients.forEach(element => {
+        // let connecting = false
+
+        /* Looking for cached client */
+        let potentialClient = this.clients[this.clients.map(function(x) {return x.source; }).indexOf(ip)]
+        if(potentialClient){
+            /* Client found but no wirecast source defined, waiting for... */
+            if(element.source === null){
+                console.log(`[BROADCAST] ${ip} found in cache, but null source, waiting for configuration.`);
+            }
+            else {
+            /* Client found and wirecast source defined, reconnecting before update color */
+                console.log(`[BROADCAST] ${ip} found in cache, reconnecting`);
+                element.connect()
+            }
+        } else {
+            /* No client were found, caching new one */
+            console.log(`[BROADCAST] ${ip} not found in cache, creating`);
+            this.clients.push(new Client(ip, this.host, this.controllerPort))
+        }
+
+        /* this.clients.forEach(element => {
             if(connecting === false && element.source === ip){
                 if(element.source === null){
                     console.log(`[BROADCAST] ${ip} found in cache, but null source, waiting for configuration.`);
@@ -61,7 +80,7 @@ export default class Controller {
         if(!connecting) {
             console.log(`[BROADCAST] ${ip} not found in cache, creating`);
             this.clients.push(new Client(ip, this.host, this.controllerPort))
-        }
+        } */
     }
 
 }
