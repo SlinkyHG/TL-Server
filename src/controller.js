@@ -1,13 +1,15 @@
 import net from 'net'
 import dgram from 'dgram'
+import Client from './client'
 
-export default class Controller{
+export default class Controller {
 
     broadcastPort = 4210
     controllerPort = 9999
     host = '0.0.0.0'
     controllerServer = net.createServer()
     broadcastServer = dgram.createSocket("udp4")
+    clients = []
 
     constructor(port){
 
@@ -28,20 +30,38 @@ export default class Controller{
         })
         
         this.broadcastListen()
-        
-        /* function broadcastNew() {
-            var message = Buffer.from("Broadcast message!");
-            server.send(message, 0, message.length, PORT, BROADCAST_ADDR, function() {
-                console.log("Sent '" + message + "'");
-            });
-        }*/
-        
     }
 
     broadcastListen(){
         this.broadcastServer.on('message', function (message, rinfo) {
-            console.log('Message from: ' + rinfo.address + ':' + rinfo.port +' - ' + message);
+            if(message = "TCACK"){
+                addClient(rinfo.address)
+                console.log(`[BROADCAST] TCACK from: ${rinfo.address}:${rinfo.port}, acquiring...`);
+            }
         });
+    }
+
+
+    addClient(ip){
+        console.log(`[BROADCAST] Searching client ${ip} in cache`);
+        let connecting = false
+        this.clients.forEach(element => {
+            if(connecting === false && element.source === ip){
+                if(element.source === null){
+                    console.log(`[BROADCAST] ${ip} found in cache, but null source, waiting for configuration.`);
+                }
+                else {
+                    console.log(`[BROADCAST] ${ip} found in cache, reconnecting`);
+                    element.connect()
+                }
+                connecting = true
+            }
+        })
+
+        if(!connecting) {
+            console.log(`[BROADCAST] ${ip} not found in cache, creating`);
+            this.clients.push(new Client(ip, this.host, this.controllerPort))
+        }
     }
 
 }
