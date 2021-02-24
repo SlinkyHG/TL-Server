@@ -100,7 +100,7 @@ export default class Controller {
         let potentialClient = this.getClient(ip)
         if(potentialClient){
             /* Client found but no wirecast source defined, waiting for... */
-            if(potentialClient.source === null){
+            if(potentialClient.source.length === 0){
                 console.log(`[BROADCAST] ${ip} found in cache, but null source, waiting for configuration.`);
             }
             else {
@@ -146,6 +146,9 @@ export default class Controller {
             
             if((data.testing === true ? true : false) !== (client.timer !== null ? true : false)) 
                 client.switchBlinking()
+
+            if(client.socket === null && client.source.length !== 0)
+                client.connect()
             
         }
         next()

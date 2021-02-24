@@ -256,9 +256,9 @@ export default {
       },
       getStatus (item) {
         let status = "Unknown"
-        if(!item.source){
+        if(item.source.length === 0){
           status = "Waiting for source"
-        } else if(item.socket){
+        } else if(item.socket === true){
           switch(item.status){
             default:
               status = "Not active"

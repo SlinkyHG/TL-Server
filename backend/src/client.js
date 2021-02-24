@@ -3,7 +3,7 @@ import dgram from 'dgram'
 
 export default class Client {
 
-    source = null
+    source = []
     broadcastClient = dgram.createSocket("udp4")
     socket = null
     controllerPort = "9999"
@@ -15,12 +15,6 @@ export default class Client {
         this.ipAddress = ip
         this.controllerPort = controllerPort
         console.log(`[CLIENT] ${this.ipAddress} waiting for source configuration.`)
-
-        setTimeout(() => {
-            this.source = ['TEST']
-            console.log(`[TMP] setting up src for ${this.ipAddress} : ${this.source}`)
-            this.connect()
-        },  1000);
     }
 
     connect = () => {
