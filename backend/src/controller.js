@@ -1,8 +1,11 @@
 import net from 'net'
 import dgram from 'dgram'
-import Client from './client.js'
 import express from 'express'
+import cors from 'cors'
+import bodyParser from 'body-parser'
 
+import Client from './client.js'
+import path from 'path'
 export default class Controller {
 
     broadcastPort = 4210
@@ -13,6 +16,11 @@ export default class Controller {
     expressServer = express()
     clients = []
     apiPath = '/api'
+    sources = [
+        'TEST',
+        'hello',
+        'kiwi'
+    ]
 
     constructor(port){
         this.controllerPort = port
@@ -32,19 +40,29 @@ export default class Controller {
         })
         
         this.expressRoutes()
-        /* Init Broadcast server to get new TL Clients */
+        /* Init Express server to get new TL Clients */
         console.log(`Starting express server on ${this.broadcastPort}`)
         this.expressServer.listen(this.expressPort, function() {
             console.log(`[EXPRESS] UP`)
         })
-                
+
         this.controllerListen()
         this.broadcastListen()
     }
 
     expressRoutes = () => {
-        this.expressServer.use(express.static('../../frontend/dist'));
+        this.expressServer.use(cors())
+        this.expressServer.use(bodyParser.json())
+        this.expressServer.get(['*', '/'], function(req, res, next) {
+            console.log(`[EXPRESS] ${req.ip} : ${req.path}`)
+            next()
+        })
+
+        this.expressServer.use('/', express.static(path.resolve('../frontend/dist')))
+
         this.expressServer.get(`${this.apiPath}/getClients`, this.expressGetClients)
+        this.expressServer.get(`${this.apiPath}/getSources`, this.expressGetSources)
+        this.expressServer.post(`${this.apiPath}/updateClient`, this.expressUpdateClient)
     }
 
     broadcastListen = () => {
@@ -65,6 +83,7 @@ export default class Controller {
                 console.log(`[CONTROLLER] Socket ${socket.remoteAddress} accepted`);
                 potentialClient.socket = socket
                 potentialClient.socket.setKeepAlive(true, 5)
+                potentialClient.update(0, 0, 255)
             } else {
                 console.log(`[CONTROLLER] Socket ${socket.remoteAddress} refused, not cached.`);
                 let message = Buffer.from(`TLController didn't cached this client.`);
@@ -101,7 +120,34 @@ export default class Controller {
     }
 
     expressGetClients = (req, rep) => {
-        rep.json(this.clients)
+        rep.json(this.clients.map(function(el) {return { 
+            source: el.source,
+            socket: el.socket !== null ? true : false,
+            ipAddress: el.ipAddress,
+            testing: el.timer !== null ? true : false,
+        }}))
     }
 
+    expressGetSources = (req, rep) => {
+        rep.json(this.sources)
+    }
+
+    expressUpdateClient = (req, rep, next) => {
+        const data = req.body
+        let client = this.getClient(data.ipAddress)
+        if(client){
+            if(data.source !== client.source){
+                data.source.forEach((element, i)=> {
+                    if(this.sources.indexOf(element) === -1)
+                        data.source.slice(i, 1)
+                });
+                client.source = data.source
+            }
+            
+            if((data.testing === true ? true : false) !== (client.timer !== null ? true : false)) 
+                client.switchBlinking()
+            
+        }
+        next()
+    }
 }
