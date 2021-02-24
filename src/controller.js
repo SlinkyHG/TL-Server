@@ -6,7 +6,6 @@ export default class Controller {
 
     broadcastPort = 4210
     controllerPort = 9999
-    host = '0.0.0.0'
     controllerServer = net.createServer()
     broadcastServer = dgram.createSocket("udp4")
     clients = []
@@ -16,15 +15,15 @@ export default class Controller {
         this.controllerPort = port
 
         /* Init TCP Server for TL Clients */
-        console.log(`Starting controller server on ${this.host}:${this.controllerPort}`)
-        this.controllerServer.listen(this.controllerPort, this.host, function(){
+        console.log(`Starting controller server on ${this.controllerPort}`)
+        this.controllerServer.listen(this.controllerPort, function(){
             console.log(`[CONTROLLER] UP`)
         })
 
         /* Init Broadcast server to get new TL Clients */
-        console.log(`Starting broadcast server on ${this.host}:${this.broadcastPort}`)
+        console.log(`Starting broadcast server on ${this.broadcastPort}`)
         let broadcastServer = this.broadcastServer
-        this.broadcastServer.bind(this.broadcastPort, this.host, function() {
+        this.broadcastServer.bind(this.broadcastPort, function() {
             broadcastServer.setBroadcast(true)
             console.log(`[BROADCAST] UP`)
         })
@@ -32,36 +31,37 @@ export default class Controller {
         this.broadcastListen()
     }
 
-    broadcastListen(){
+    broadcastListen = () => {
+        let addClient = this.addClient
         this.broadcastServer.on('message', function (message, rinfo) {
-            if(message = "TCACK"){
+            if(message.toString() === "TLACK"){
+                console.log(`[BROADCAST] TLACK from: ${rinfo.address}:${rinfo.port}, acquiring...`);
                 addClient(rinfo.address)
-                console.log(`[BROADCAST] TCACK from: ${rinfo.address}:${rinfo.port}, acquiring...`);
             }
         });
     }
 
 
-    addClient(ip){
+    addClient = (ip) => {
         console.log(`[BROADCAST] Searching client ${ip} in cache`);
         // let connecting = false
 
         /* Looking for cached client */
-        let potentialClient = this.clients[this.clients.map(function(x) {return x.source; }).indexOf(ip)]
+        let potentialClient = this.clients[this.clients.map((x) => {return x.ipAddress}).indexOf(ip)]
         if(potentialClient){
             /* Client found but no wirecast source defined, waiting for... */
-            if(element.source === null){
+            if(potentialClient.source === null){
                 console.log(`[BROADCAST] ${ip} found in cache, but null source, waiting for configuration.`);
             }
             else {
             /* Client found and wirecast source defined, reconnecting before update color */
                 console.log(`[BROADCAST] ${ip} found in cache, reconnecting`);
-                element.connect()
+                potentialClient.connect()
             }
         } else {
             /* No client were found, caching new one */
             console.log(`[BROADCAST] ${ip} not found in cache, creating`);
-            this.clients.push(new Client(ip, this.host, this.controllerPort))
+            this.clients.push(new Client(ip, this.controllerPort))
         }
 
         /* this.clients.forEach(element => {

@@ -1,24 +1,30 @@
 import dgram from 'dgram'
+
+
 export default class Client {
 
     source = null
-    broadcastClient = dgram.createSocket("udp4");
-    controllerIp = "127.0.0.1"
+    broadcastClient = dgram.createSocket("udp4")
+
     controllerPort = "9999"
     ipAddress= "0.0.0.0"
-    broadcastPort = "4210"
     
-    constructor(ip, controllerIp, controllerPort){
+    constructor(ip, controllerPort){
         this.ipAddress = ip
-        this.controllerIp = controllerIp
         this.controllerPort = controllerPort
         console.log(`[CLIENT] ${this.ipAddress} waiting for source configuration.`)
+
+        setTimeout(() => {
+            this.source = 'TEST'
+            console.log(`[TMP] setting up src for ${this.ipAddress} : ${this.source}`)
+            this.connect()
+        },  1000);
     }
 
-    connect(){
-        let message = Buffer.from(`TLController on  ${this.controllerIp}:${this.controllerPort}`);
-        this.client.setBroadcast(true)
-        this.client.send(message, 0, message.length, 4210, this.ip)
+    connect = () => {
+        console.log(`[CLIENT] Sending  TLController to ${this.ipAddress}`)
+        let message = Buffer.from(`TLController on  ${this.controllerPort}`);
+        this.broadcastClient.send(message, 4210, this.ipAddress)
     }
 
 }
