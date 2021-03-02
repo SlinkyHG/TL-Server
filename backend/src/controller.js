@@ -82,6 +82,14 @@ export default class Controller {
             if(potentialClient){
                 console.log(`[CONTROLLER] Socket ${socket.remoteAddress} accepted`);
                 potentialClient.socket = socket
+                potentialClient.socket.on("close", function() {
+                    console.log(`[CLIENT] Connection with ${potentialClient.ipAddress} closed.`)
+                    potentialClient.socket = null
+                })
+                potentialClient.socket.on("end", function() {
+                    console.log(`[CLIENT] Connection with ${potentialClient.ipAddress} closed.`)
+                    potentialClient.socket = null
+                })
                 potentialClient.socket.setKeepAlive(true, 5)
                 potentialClient.update(0, 0, 255)
             } else {

@@ -19,10 +19,10 @@ export default class Client {
 
     connect = () => {
         if(this.socket === null) {
-            console.log(`[CLIENT] Sending  TLController to ${this.ipAddress}`)
-            let message = Buffer.from(`TLController on  ${this.controllerPort}`);
-            //this.broadcastClient.send(message, 4210, this.ipAddress)
-            this.broadcastClient.send(message, 4211, this.ipAddress)
+            console.log(`[CLIENT] Sending TLController to ${this.ipAddress}`)
+            let message = Buffer.from(`TLController on ${this.controllerPort}`);
+            this.broadcastClient.send(message, 4210, this.ipAddress)
+            //this.broadcastClient.send(message, 4211, this.ipAddress)
         }
     }
 

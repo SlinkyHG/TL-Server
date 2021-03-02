@@ -206,25 +206,10 @@ export default {
     }
   },
   mounted: function() {
-    axios.get('http://localhost:8080/api/getClients')
-      .then((response, error)=> {
-        if(!error){
-          this.clients = response.data
-          console.log(this.clients)
-        } else {
-          console.warn(error)
-        }
-      })
-
-    axios.get('http://localhost:8080/api/getSources')
-      .then((response, error)=> {
-        if(!error){
-          this.sources = response.data
-          console.log(this.sources)
-        } else {
-          console.warn(error)
-        }
-      })
+    this.updateData()
+    setInterval(() => {
+      this.updateData()
+    }, 5000)
   },
   computed: {
       numberOfPages () {
@@ -235,44 +220,66 @@ export default {
       },
     },
   methods: {
-      nextPage () {
-        if (this.page + 1 <= this.numberOfPages) this.page += 1
-      },
-      formerPage () {
-        if (this.page - 1 >= 1) this.page -= 1
-      },
-      updateItemsPerPage (number) {
-        this.itemsPerPage = number
-      },
-      pushItem (item) {
-        console.log(item.testing)
-        axios.post('http://localhost:8080/api/updateClient', item
-          ).then(function (response) {
-            console.log(response);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      },
-      getStatus (item) {
-        let status = "Unknown"
-        if(item.source.length === 0){
-          status = "Waiting for source"
-        } else if(item.socket === true){
-          switch(item.status){
-            default:
-              status = "Not active"
-              break;
-            case 1:
-              status = "Preview"
-              break;
-            case 2:
-              status = "Live"
-              break;
+    updateData () {
+      axios.get('http://localhost:8080/api/getClients')
+        .then((response, error)=> {
+          if(!error){
+            this.clients = response.data
+            console.log(this.clients)
+          } else {
+            console.warn(error)
           }
-        }
-        return status
+        })
+
+      axios.get('http://localhost:8080/api/getSources')
+        .then((response, error)=> {
+          if(!error){
+            this.sources = response.data
+            console.log(this.sources)
+          } else {
+            console.warn(error)
+          }
+        })
       },
+
+    nextPage () {
+      if (this.page + 1 <= this.numberOfPages) this.page += 1
+    },
+    formerPage () {
+      if (this.page - 1 >= 1) this.page -= 1
+      },
+    updateItemsPerPage (number) {
+      this.itemsPerPage = number
+    },
+    pushItem (item) {
+      console.log(item.testing)
+      axios.post('http://localhost:8080/api/updateClient', item
+        ).then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    getStatus (item) {
+      let status = "Unknown"
+      if(item.source.length === 0){
+        status = "Waiting for source"
+      } else if(item.socket === true){
+        switch(item.status){
+          default:
+            status = "Not active"
+            break;
+          case 1:
+            status = "Preview"
+            break;
+          case 2:
+            status = "Live"
+            break;
+        }
+      }
+      return status
+    },
   }
 }
 </script>
