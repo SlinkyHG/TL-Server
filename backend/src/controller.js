@@ -16,11 +16,8 @@ export default class Controller {
     expressServer = express()
     clients = []
     apiPath = '/api'
-    sources = [
-        'TEST',
-        'hello',
-        'kiwi'
-    ]
+    sources = []
+    
 
     constructor(port){
         this.controllerPort = port
@@ -63,6 +60,8 @@ export default class Controller {
         this.expressServer.get(`${this.apiPath}/getClients`, this.expressGetClients)
         this.expressServer.get(`${this.apiPath}/getSources`, this.expressGetSources)
         this.expressServer.post(`${this.apiPath}/updateClient`, this.expressUpdateClient)
+        this.expressServer.post(`${this.apiPath}/pushSources`, this.expressPushSources)
+        this.expressServer.post(`${this.apiPath}/pushLayers`, this.expressPushLayers)
     }
 
     broadcastListen = () => {
@@ -91,7 +90,7 @@ export default class Controller {
                     potentialClient.socket = null
                 })
                 potentialClient.socket.setKeepAlive(true, 5)
-                potentialClient.update(0, 0, 255)
+                potentialClient.update(0, 0, 255, true)
             } else {
                 console.log(`[CONTROLLER] Socket ${socket.remoteAddress} refused, not cached.`);
                 let message = Buffer.from(`TLController didn't cached this client.`);
@@ -140,6 +139,19 @@ export default class Controller {
         rep.json(this.sources)
     }
 
+    expressPushLayers = (req, rep) => {
+        const data =  req.body
+        this.clients.forEach(cl => {
+            cl.updateStatus(data)
+        })
+        rep.send()
+    }
+
+    expressPushSources = (req, rep) => {
+        this.sources = req.body
+        rep.json(this.sources)
+    }
+
     expressUpdateClient = (req, rep, next) => {
         const data = req.body
         let client = this.getClient(data.ipAddress)
@@ -148,7 +160,7 @@ export default class Controller {
                 data.source.forEach((element, i)=> {
                     if(this.sources.indexOf(element) === -1)
                         data.source.slice(i, 1)
-                });
+                })
                 client.source = data.source
             }
             

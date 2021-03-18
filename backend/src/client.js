@@ -10,6 +10,8 @@ export default class Client {
     ipAddress= "0.0.0.0"
     timer = null
     blinkStatus = false
+    status = 0
+    colors = { r: 0, g: 0, b: 255}
 
     constructor(ip, controllerPort){
         this.ipAddress = ip
@@ -26,12 +28,15 @@ export default class Client {
         }
     }
 
-    update = (r,g,b) => {
+    update = (r,g,b, force = false) => {
         if(this.socket !== null) {
-            console.log(`[CLIENT] Updating light ${this.ipAddress} : R=${r} G=${g} B=${b}`)
-            let message = Buffer.from(`${r},${g},${b}`);
-            //this.broadcastClient.send(message, 4210, this.ipAddress)
-            this.socket.write(message)
+            if(r !== this.colors.r || g !== this.colors.g || b !== this.colors.b || force === true){
+                console.log(`[CLIENT] Updating light ${this.ipAddress} : R=${r} G=${g} B=${b}`)
+                let message = Buffer.from(`${r},${g},${b}\n`);
+                //this.broadcastClient.send(message, 4210, this.ipAddress)
+                this.socket.write(message)
+                this.colors.r = r; this.colors.g = g; this.colors.b = b
+            }
         }
     }
 
@@ -55,10 +60,50 @@ export default class Client {
 
     blink = () => {
         if(this.blinkStatus)
-            this.update(0, 0, 255)
+            this.update(0, 0, 255, true)
         else
             this.powerOff()
         
         this.blinkStatus = !this.blinkStatus
+    }
+
+    updateStatus = (layers) => {
+        if(this.timer === null) {
+            if(this.source.includes(layers.Live)) {
+                this.status = 1
+            }
+            else if(this.source.includes(layers.Preview)) {
+                this.status = 2
+            }
+            else if(this.source.length !== 0) {
+                this.status = 3
+            }
+            else {
+                this.status = 0
+            }
+            this.powerOn()
+        }
+    }
+
+    powerOn = (status=this.status) => {
+        this.status = status
+        if(this.timer === null){
+            switch(this.status){
+                case 0: // SETUP
+                    this.update(0, 0, 255)
+                    break;
+
+                case 1: // LIVE
+                    this.update(255, 0, 0)
+                    break;
+
+                case 2: // PREVIEW
+                    this.update(0, 255, 0)
+                    break;
+
+                default:
+                    this.powerOff()
+            }
+        }
     }
 }
