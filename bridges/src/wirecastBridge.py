@@ -61,7 +61,7 @@ def getWirecastData():
             #print("Autolive: OFF")
 
         print("Wirecast: OPEN")
-        for i in range(3):
+        for i in range(5):
             for j in range(1024):
                 if wc.ShotByShotID(j) is not None and wc.ShotByShotID(j).Name[0:3] == "@TL" and wc.ShotByShotID(j).Name not in srcList:
                     srcList.append(wc.ShotByShotID(j).Name)
@@ -70,11 +70,15 @@ def getWirecastData():
 
             if wc.ShotByShotID(PreviewShotID) is not None and wc.ShotByShotID(PreviewShotID).Name[0:3] == "@TL" and wc.ShotByShotID(PreviewShotID).Name not in layerInfos['Preview']:
                 layerInfos['Preview'].append(wc.ShotByShotID(PreviewShotID).Name)
+            
+            print('PREVIEW %s - %s - %s '%(i, wc.ShotByShotID(PreviewShotID).Name, layerInfos['Preview']))
 
             LiveShotID = wc.LayerByIndex(i+1).LiveShotID()
 
             if wc.ShotByShotID(LiveShotID) is not None and wc.ShotByShotID(LiveShotID).Name[0:3] == "@TL" and wc.ShotByShotID(LiveShotID).Name not in layerInfos['Live']:
                 layerInfos['Live'].append(wc.ShotByShotID(LiveShotID).Name)
+            print('LIVE  %s - %s - %s'%(i, wc.ShotByShotID(PreviewShotID).Name, layerInfos['Live']))
+
 
         return True
 
@@ -102,6 +106,8 @@ if __name__ == "__main__":
     handleArguments()
 
     while True:
+        srcList = []  
+        layerInfos = {'Live': [], 'Preview': []}
         getWirecastData()                                                   # Get latest Wirecast information
 
         try:
