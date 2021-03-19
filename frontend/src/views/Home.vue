@@ -90,17 +90,19 @@
                       Source:
                     </v-list-item-content>
                     <v-list-item-content>
-                      <v-row
+                      <div
+                        style="margin:0"
                         v-for="(number, index) in sources"
                         :key="index"
                       >
                         <v-checkbox
+                          :dense="true"
                           v-model="item.source"
                           :label="number"
                           :value="number"
                           @click="pushItem(item)"
                         ></v-checkbox>
-                      </v-row>
+                      </div>
                     </v-list-item-content>
                   </v-list-item>
                   <v-list-item>
