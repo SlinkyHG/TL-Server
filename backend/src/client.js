@@ -66,13 +66,25 @@ export default class Client {
         
         this.blinkStatus = !this.blinkStatus
     }
-
+    getCommonItems = (array1, array2) => {
+        var common = []; // Initialize array to contain common items
+        
+        for (var i = 0; i < array1.length; i++) {
+          for (var j = 0; j < array2.length; j++) {
+            if (array1[i] == array2[j]) { // If item is present in both arrays
+              common.push(array1[i]); // Push to common array
+            }
+          }
+        }
+       
+        return common; // Return the common items
+      }
     updateStatus = (layers) => {
         if(this.timer === null) {
-            if(this.source.includes(layers.Live)) {
+            if((typeof layers.Live !== 'string' && this.getCommonItems(this.source, layers.Live).length !== 0 ) || this.source.includes(layers.Live)) {
                 this.status = 1
             }
-            else if(this.source.includes(layers.Preview)) {
+            else if((typeof layers.Preview !== 'string' && this.getCommonItems(this.source, layers.Preview).length !== 0 ) || this.source.includes(layers.Preview)) {
                 this.status = 2
             }
             else if(this.source.length !== 0) {

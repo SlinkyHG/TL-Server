@@ -26,9 +26,8 @@ localIP = 0
 wirecastIsOpen = True
 autoLive = False
 TallyState = [0 for i in range(256)]    # Tally State buffer 0-255
-dict = {'Live': '', 'Preview': ''}
 srcList = []  
-layerInfos = [{}, {}, {}, {}, {}]
+layerInfos = {'Live': [], 'Preview': []}
 CONTROLLER = "http://localhost:8080/api"
 # =======================================================
 # Helper Functions
@@ -55,27 +54,27 @@ def getWirecastData():
         # Get Autolive State
         AutoLiveActiveState = wc.AutoLive
 
-        autoLive = AutoLiveActiveState
-        if AutoLiveActiveState == 1:
-            print("Autolive: ON")
-        else:  # Preview
-            print("Autolive: OFF")
+        #autoLive = AutoLiveActiveState
+        #if AutoLiveActiveState == 1:
+            #print("Autolive: ON")
+        #else:  # Preview
+            #print("Autolive: OFF")
 
-            print("Wirecast: OPEN")
-            for i in range(5):
-                for j in range(1024):
-                    if wc.ShotByShotID(j) is not None and wc.ShotByShotID(j).Name[0:3] == "@TL" and wc.ShotByShotID(j).Name not in srcList:
-                        srcList.append(wc.ShotByShotID(j).Name)
+        print("Wirecast: OPEN")
+        for i in range(3):
+            for j in range(1024):
+                if wc.ShotByShotID(j) is not None and wc.ShotByShotID(j).Name[0:3] == "@TL" and wc.ShotByShotID(j).Name not in srcList:
+                    srcList.append(wc.ShotByShotID(j).Name)
 
-                # Get Preview Shot Name
-                PreviewShotID = wc.LayerByIndex(tallyLayer).PreviewShotID()
-                dict['Preview'] = wc.ShotByShotID(PreviewShotID).Name
+            PreviewShotID = wc.LayerByIndex(i+1).PreviewShotID()
 
-                # Get Live Shot Name
-                LiveShotID = wc.LayerByIndex(tallyLayer).LiveShotID()
-                dict['Live'] = wc.ShotByShotID(LiveShotID).Name
-                
-                layerInfos[i] = dict
+            if wc.ShotByShotID(PreviewShotID) is not None and wc.ShotByShotID(PreviewShotID).Name[0:3] == "@TL" and wc.ShotByShotID(PreviewShotID).Name not in layerInfos['Preview']:
+                layerInfos['Preview'].append(wc.ShotByShotID(PreviewShotID).Name)
+
+            LiveShotID = wc.LayerByIndex(i+1).LiveShotID()
+
+            if wc.ShotByShotID(LiveShotID) is not None and wc.ShotByShotID(LiveShotID).Name[0:3] == "@TL" and wc.ShotByShotID(LiveShotID).Name not in layerInfos['Live']:
+                layerInfos['Live'].append(wc.ShotByShotID(LiveShotID).Name)
 
         return True
 
@@ -106,8 +105,9 @@ if __name__ == "__main__":
         getWirecastData()                                                   # Get latest Wirecast information
 
         try:
-            r = requests.post(url = '%s/pushSources'%CONTROLLER, data = srcList) 
-            r = requests.post(url = '%s/pushLayers'%CONTROLLER, data = layerInfos) 
+            requests.post(url = '%s/pushSources'%CONTROLLER, json = srcList) 
+            requests.post(url = '%s/pushLayers'%CONTROLLER, json = layerInfos) 
+            #print(layerInfos)
 
         except ValueError:
             print(ValueError)

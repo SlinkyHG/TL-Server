@@ -141,6 +141,7 @@ export default class Controller {
 
     expressPushLayers = (req, rep) => {
         const data =  req.body
+        console.log(req.body)
         this.clients.forEach(cl => {
             cl.updateStatus(data)
         })
