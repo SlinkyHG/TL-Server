@@ -20,19 +20,17 @@ export default class Client {
     }
 
     connect = () => {
-        if(this.socket === null) {
-            console.log(`[CLIENT] Sending TLController to ${this.ipAddress}`)
-            let message = Buffer.from(`TLController on ${this.controllerPort}`);
-            this.broadcastClient.send(message, 4210, this.ipAddress)
-            //this.broadcastClient.send(message, 4211, this.ipAddress)
-        }
+        console.log(`[CLIENT] Sending TLController to ${this.ipAddress}`)
+        let message = Buffer.from(`TLController on ${this.controllerPort}`);
+        this.broadcastClient.send(message, 4210, this.ipAddress)
+        //this.broadcastClient.send(message, 4211, this.ipAddress)
     }
 
     update = (r,g,b, force = false) => {
         if(this.socket !== null) {
             if(r !== this.colors.r || g !== this.colors.g || b !== this.colors.b || force === true){
                 console.log(`[CLIENT] Updating light ${this.ipAddress} : R=${r} G=${g} B=${b}`)
-                let message = Buffer.from(`${r},${g},${b}\n`);
+                let message = Buffer.from(`${r},${g},${b};`);
                 //this.broadcastClient.send(message, 4210, this.ipAddress)
                 this.socket.write(message)
                 this.colors.r = r; this.colors.g = g; this.colors.b = b

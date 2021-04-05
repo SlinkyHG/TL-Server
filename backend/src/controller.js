@@ -38,7 +38,7 @@ export default class Controller {
         
         this.expressRoutes()
         /* Init Express server to get new TL Clients */
-        console.log(`Starting express server on ${this.broadcastPort}`)
+        console.log(`Starting express server on ${this.expressPort}`)
         this.expressServer.listen(this.expressPort, function() {
             console.log(`[EXPRESS] UP`)
         })
@@ -87,6 +87,10 @@ export default class Controller {
                 })
                 potentialClient.socket.on("end", function() {
                     console.log(`[CLIENT] Connection with ${potentialClient.ipAddress} closed.`)
+                    potentialClient.socket = null
+                })
+                potentialClient.socket.on("error", function() {
+                    console.log(`[CLIENT] Connection with ${potentialClient.ipAddress} crashed.`)
                     potentialClient.socket = null
                 })
                 potentialClient.socket.setKeepAlive(true, 5)
